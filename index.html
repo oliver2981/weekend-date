@@ -156,6 +156,29 @@
 
   .next-wrap { margin-top: 24px; }
 
+  .card.add-card { border: 2.5px dashed #ff9bbb; background: rgba(255,255,255,.5); }
+  .custom-add {
+    display: none;
+    margin-top: 14px;
+    width: 100%;
+    max-width: 360px;
+    gap: 8px;
+  }
+  .custom-add.show { display: flex; animation: screenIn .3s ease both; }
+  .custom-add input {
+    flex: 1;
+    min-width: 0;
+    border: 2px solid #ffb3c6;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-size: 15px;
+    color: #a04d68;
+    outline: none;
+    background: rgba(255,255,255,.92);
+  }
+  .custom-add input:focus { border-color: #ff5c8a; }
+  .btn.small { padding: 11px 22px; font-size: 15px; }
+
   .invite {
     background: rgba(255,255,255,.94);
     border-radius: 24px;
@@ -237,7 +260,7 @@
 <section class="screen active" id="s1">
   <div class="emoji-big">🥺👉👈</div>
   <h1 id="q1"></h1>
-  <p class="sub">人家鼓起好大的勇气才问出口的…</p>
+  <p class="sub">鼓起好大的勇气才问出口的…</p>
   <div class="btn-row">
     <button class="btn" id="btn-yes">愿意呀 💕</button>
     <button class="btn secondary" id="btn-no">让我想想</button>
@@ -262,6 +285,10 @@
   <h1>想和我一起做什么呢？</h1>
   <p class="sub">可以多选哦，全选也没问题 😏</p>
   <div class="grid" id="act-grid"></div>
+  <div class="custom-add" id="custom-add">
+    <input type="text" id="custom-input" maxlength="12" placeholder="写下你想做的事～">
+    <button class="btn small" id="custom-ok">添加</button>
+  </div>
   <div class="next-wrap">
     <button class="btn" id="btn-act" disabled>选好啦 💫</button>
   </div>
@@ -350,7 +377,7 @@ function goto(n) {
 
 /* ---------- 第 1 步：逃跑按钮 ---------- */
 const btnNo = document.getElementById("btn-no");
-const NO_TEXTS = ["让我想想", "别跑呀", "点不到点不到", "嘿嘿 就不", "放弃吧~", "人家会伤心的 🥺"];
+const NO_TEXTS = ["让我想想", "别跑呀", "点不到点不到", "嘿嘿 就不", "放弃吧~", "某位Dammy的爱慕者会伤心的 🥺"];
 let noCount = 0;
 function flee() {
   btnNo.classList.add("fleeing");
@@ -421,18 +448,40 @@ document.getElementById("btn-time").addEventListener("click", () => goto(3));
 
 /* ---------- 第 3 步：选项目 ---------- */
 const grid = document.getElementById("act-grid");
-CONFIG.activities.forEach(a => {
+function addActCard(a, preselect) {
   const el = document.createElement("div");
   el.className = "card";
-  el.innerHTML = '<span class="ico">' + a.ico + '</span><span class="txt">' + a.txt + "</span>";
+  el.innerHTML = '<span class="ico">' + a.ico + '</span><span class="txt"></span>';
+  el.querySelector(".txt").textContent = a.txt;
+  const name = a.ico + " " + a.txt;
   el.onclick = () => {
     el.classList.toggle("sel");
-    const name = a.ico + " " + a.txt;
     const i = state.acts.indexOf(name);
     i >= 0 ? state.acts.splice(i, 1) : state.acts.push(name);
     document.getElementById("btn-act").disabled = state.acts.length === 0;
   };
-  grid.appendChild(el);
+  grid.insertBefore(el, addCard);
+  if (preselect) el.onclick();
+}
+// 「自己写一个」卡片 + 输入框
+const addCard = document.createElement("div");
+addCard.className = "card add-card";
+addCard.innerHTML = '<span class="ico">✏️</span><span class="txt">自己写一个</span>';
+addCard.onclick = () => {
+  document.getElementById("custom-add").classList.add("show");
+  document.getElementById("custom-input").focus();
+};
+grid.appendChild(addCard);
+CONFIG.activities.forEach(a => addActCard(a, false));
+
+document.getElementById("custom-ok").addEventListener("click", () => {
+  const input = document.getElementById("custom-input");
+  const txt = input.value.trim();
+  if (!txt) return;
+  addActCard({ ico: "💡", txt: txt }, true);
+  input.value = "";
+  document.getElementById("custom-add").classList.remove("show");
+  addCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 document.getElementById("btn-act").addEventListener("click", () => {
   document.getElementById("r-name").textContent = CONFIG.herName + " 小姐 💝";
