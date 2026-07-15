@@ -503,6 +503,8 @@ document.getElementById("btn-final").addEventListener("click", function () {
 
 function sendNotify() {
   if (!CONFIG.sendKey) return;
+  // 本地打开或带 ?test 参数时不真实推送，避免消耗 Server酱 免费次数
+  if (location.protocol === "file:" || new URLSearchParams(location.search).has("test")) return;
   const title = CONFIG.herName + " 答应和你约会啦！🎉";
   const desp = "时间：" + state.day.label + " " + state.day.text + " " + state.slot.key +
     "\n\n项目：" + state.acts.join("、");
